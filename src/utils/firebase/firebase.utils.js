@@ -1,74 +1,89 @@
 import { initializeApp } from 'firebase/app';
 import {
   getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
   signInWithRedirect,
+  signInWithPopup,
+  GoogleAuthProvider,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  
-} from 'firebase/auth'
-import { getFirestore, doc,getDocs ,getDoc, setDoc,collection,writeBatch,query } from 'firebase/firestore'
+} from 'firebase/auth';
+import {
+  getFirestore,
+  doc,
+  getDoc,
+  setDoc,
+  collection,
+  writeBatch,
+  query,
+  getDocs,
+} from 'firebase/firestore';
 
-// Firebase config
 const firebaseConfig = {
-  apiKey: "AIzaSyCS0ldOZN6HQp1lcnxWKMosj5WBFXE5zlw",
-  authDomain: "crwn-clothing2-13f9d.firebaseapp.com",
-  projectId: "crwn-clothing2-13f9d",
-  storageBucket: "crwn-clothing2-13f9d.appspot.com",
-  messagingSenderId: "445359758747",
-  appId: "1:445359758747:web:f24b8b14a4afd9716e153e",
-  measurementId: "G-86YRBMR5DV"
+  apiKey: 'AIzaSyDDU4V-_QV3M8GyhC9SVieRTDM4dbiT0Yk',
+  authDomain: 'crwn-clothing-db-98d4d.firebaseapp.com',
+  projectId: 'crwn-clothing-db-98d4d',
+  storageBucket: 'crwn-clothing-db-98d4d.appspot.com',
+  messagingSenderId: '626766232035',
+  appId: '1:626766232035:web:506621582dab103a4d08d6',
 };
 
-// Initialize Firebase
-initializeApp(firebaseConfig);
+const firebaseApp = initializeApp(firebaseConfig);
 
-// Providers
 const googleProvider = new GoogleAuthProvider();
+
 googleProvider.setCustomParameters({
-  prompt: "select_account"
+  prompt: 'select_account',
 });
 
-// Auth and Firestore instances
 export const auth = getAuth();
+export const signInWithGooglePopup = () =>
+  signInWithPopup(auth, googleProvider);
+export const signInWithGoogleRedirect = () =>
+  signInWithRedirect(auth, googleProvider);
+
 export const db = getFirestore();
-//adding data to firebase
-export const addCollectionAndDocuments=async (collectionKey,objectsToAdd)=>{
-  const collectionRef=collection(db,collectionKey);
-  const batch=writeBatch(db)
-  objectsToAdd.forEach((object)=>{
-    const docRef=doc(collectionRef,object.title.toLowerCase()  )
-    batch.set(docRef,object)
-  })
-  await batch.commit()
-}
 
-export const getCategoriesAndDocuments=async()=>{
-  const collectionRef=collection(db,'categories')
-  const q=query(collectionRef);
-  const querySnapshot=await getDocs(q)
-  const categoryMap=querySnapshot.docs.reduce((acc,docSnapshot)=>{
-    const {title,items}=docSnapshot.data();
-    acc[title.toLowerCase()]=items;
-    return acc
-  },{})
-  return categoryMap
+export const addCollectionAndDocuments = async (
+  collectionKey,
+  objectsToAdd,
+  field
+) => {
+  const collectionRef = collection(db, collectionKey);
+  const batch = writeBatch(db);
 
-}
+  objectsToAdd.forEach((object) => {
+    const docRef = doc(collectionRef, object.title.toLowerCase());
+    batch.set(docRef, object);
+  });
 
+  await batch.commit();
+  console.log('done');
+};
 
-// Google sign-in
-export const signInWithGooglePopup = () => signInWithPopup(auth, googleProvider);
-export const signInWithGoogleRedirect = () => signInWithRedirect(auth, googleProvider);
+export const getCategoriesAndDocuments = async () => {
+  const collectionRef = collection(db, 'categories');
+  const q = query(collectionRef);
 
-// Create user document in Firestore
-export const createUserDocumentFromAuth = async (userAuth, additionalInformation = {}) => {
+  const querySnapshot = await getDocs(q);
+  const categoryMap = querySnapshot.docs.reduce((acc, docSnapshot) => {
+    const { title, items } = docSnapshot.data();
+    acc[title.toLowerCase()] = items;
+    return acc;
+  }, {});
+
+  return categoryMap;
+};
+
+export const createUserDocumentFromAuth = async (
+  userAuth,
+  additionalInformation = {}
+) => {
   if (!userAuth) return;
 
   const userDocRef = doc(db, 'users', userAuth.uid);
+
   const userSnapshot = await getDoc(userDocRef);
 
   if (!userSnapshot.exists()) {
@@ -80,30 +95,29 @@ export const createUserDocumentFromAuth = async (userAuth, additionalInformation
         displayName,
         email,
         createdAt,
-        ...additionalInformation
+        ...additionalInformation,
       });
     } catch (error) {
-      console.log('Error creating the document in Firestore:', error.message);
+      console.log('error creating the user', error.message);
     }
   }
 
   return userDocRef;
 };
 
-// Email & password registration
-export const createUserWithEmailAndPasswordAuth = async (email, password) => {
+export const createAuthUserWithEmailAndPassword = async (email, password) => {
   if (!email || !password) return;
+
   return await createUserWithEmailAndPassword(auth, email, password);
 };
 
-// Email & password sign-in
-export const signInWithEmailAndPasswordAuth = async (email, password) => {
+export const signInAuthUserWithEmailAndPassword = async (email, password) => {
   if (!email || !password) return;
+
   return await signInWithEmailAndPassword(auth, email, password);
 };
 
-// Sign out
-export const signOutAuthUser = async () => await signOut(auth);
+export const signOutUser = async () => await signOut(auth);
 
-// Auth state listener
-export const onAuthStateChangedListener = (callback) => onAuthStateChanged(auth, callback);
+export const onAuthStateChangedListener = (callback) =>
+  onAuthStateChanged(auth, callback);
