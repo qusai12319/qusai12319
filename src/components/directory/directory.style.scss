@@ -2,5 +2,13 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
+  gap: 20px;
   width: 100%;
+}
+
+.categories-container a {
+  display: block; /* or use display: flex */
+  flex: 1 1 30%; /* Allow each item to take up space properly */
+  min-width: 250px;
+  text-decoration: none;
 }
